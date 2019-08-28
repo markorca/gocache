@@ -7,7 +7,16 @@ type RedisHandle struct {
 	pool *redis.Pool
 }
 
-func (r *RedisHandle) Init() {
+func NewRedisHandle() *RedisHandle {
+	r := &RedisHandle{}
+	r.Init()
+	return r
+}
+
+func (r *RedisHandle) Init() *RedisHandle {
+	var network string = "tcp"
+	var address string = "127.0.0.1:6379"
+	var password string = ""
 	var maxConnection int = 100
 
 	r.pool = &redis.Pool{
@@ -19,7 +28,7 @@ func (r *RedisHandle) Init() {
 			_, err := c.Do("PING")
 			return err
 		},
-		Dail: func() (redis.Conn, error) {
+		Dial: func() (redis.Conn, error) {
 			return dial(network, address, password)
 		},
 	}
@@ -27,24 +36,20 @@ func (r *RedisHandle) Init() {
 	return r
 }
 
-func dial() (redis.Conn, error) {
-	var network string = "tcp"
-	var address string = "127.0.0.1:6379"
-	var password string = ""
-
-	c, error := redis.Dial(network, address)
+func dial(network, address, password string) (redis.Conn, error) {
+	c, err := redis.Dial(network, address)
 	if err != nil {
-		return nil, error
+		return nil, err
 	}
 
 	if password != "" {
-		if _, error := c.Do("AUTH", password); error != nil {
+		if _, err := c.Do("AUTH", password); err != nil {
 			c.Close()
-			return nil, error
+			return nil, err
 		}
 	}
 
-	return c, error
+	return c, err
 }
 
 func (r *RedisHandle) Publish(message string) error {

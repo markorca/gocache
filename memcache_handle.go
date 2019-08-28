@@ -3,10 +3,16 @@ package cache
 import "github.com/bradfitz/gomemcache/memcache"
 
 type MemcacheHandle struct {
-	client *memcache
+	client *memcache.Client
 }
 
-func cacheItemToItem(cacheItem *cacheItem) *memcache.Item {
+func NewMemcacheHandle() *MemcacheHandle {
+	m := &MemcacheHandle{}
+	m.Init()
+	return m
+}
+
+func cacheItemToItem(cacheItem *CacheItem) *memcache.Item {
 	return &memcache.Item{
 		Key: cacheItem.Key,
 		Value: cacheItem.Value,
@@ -22,7 +28,7 @@ func itemToCacheItem(item *memcache.Item) *CacheItem {
 	}
 }
 
-func (m *MemcacheHandle) Init() {
+func (m *MemcacheHandle) Init() *MemcacheHandle {
 	var address string = "127.0.0.1:11211"
 
 	m.client = memcache.New(address)
@@ -40,11 +46,12 @@ func (m *MemcacheHandle) Set(cacheItem *CacheItem) error {
 }
 
 func (m *MemcacheHandle) Get(key string) (*CacheItem, error) {
-	if item, err := m.client.Get(key); err != nil {
-		return _, err
+	item, err := m.client.Get(key)
+	if err != nil {
+		return nil, err
 	}
 
 	cacheItem := itemToCacheItem(item)
 
-	return cacheItem
+	return cacheItem, nil
 }

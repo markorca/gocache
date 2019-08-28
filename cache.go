@@ -1,25 +1,25 @@
 package cache
 
 import (
+	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/bradfitz/gomemcache/memcache"
 )
 
 type Cache struct {
 	// handle memcache
 	mem *MemcacheHandle
 
-	lsIntf *LocalStorage
+	lsIntf LocalStorage
 
 	// redis conn, use it to update/delete in multi
 	rds *RedisHandle
 }
 
-func Init() {
+func Init() *Cache {
 	c := &Cache{}
 
-	c.mem = MemcacheHandle.Init()
-	c.rds = RedisHandle.Init()
+	c.mem = NewMemcacheHandle()
+	c.rds = NewRedisHandle()
 
 	c.lsIntf = LocalStorage(c.mem)
 
@@ -29,7 +29,7 @@ func Init() {
 }
 
 // use redis subscribe/publish function to sync object
-func subscribe(rds *RedisHandle) {
+func subscribe(rds *RedisHandle) error {
 	var channel string = "LocalStorageSync"
 
 	conn := rds.pool.Get()
@@ -44,30 +44,39 @@ func subscribe(rds *RedisHandle) {
 		for {
 			switch v:= psc.Receive().(type) {
 			case redis.Message:
+				fmt.Println(v.Data)
 				// TODO v.Data, v.Channel
 			case redis.Subscription:
 				// NOTHING
 			case error:
-				return v
+				// TODO error
 			}
 		}
-	}
+	}()
+
+	return nil
 }
 
-func (c *Cache) GetObject(key string) *CacheItem {
-	cacheItem := c.lsIntf.Get(key)
-	return cacheItem
+func (c *Cache) GetObject(key string) (*CacheItem, error) {
+	if cacheItem, err := c.lsIntf.Get(key); err != nil {
+		return nil, err
+	}
+	return cacheItem, err
 }
 
 // need distributed
-func (c *Cache) SetObject(key string, value []byte, expiration int) {
-	cacheItem := &cacheItem{
+func (c *Cache) SetObject(key string, value []byte, expiration int32) error {
+	cacheItem := &CacheItem{
 		Key: key,
 		Value: value,
 		Expiration: expiration,
 	}
 
-	c.lsIntf.Set(cacheItem)
+	if err := c.lsIntf.Set(cacheItem); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // need distributed
