@@ -1,5 +1,10 @@
 package cache
 
+import (
+	"github.com/gomodule/redigo/redis"
+	"github.com/bradfitz/gomemcache/memcache"
+)
+
 type Cache struct {
 	// handle memcache
 	mem *MemcacheHandle
@@ -10,25 +15,23 @@ type Cache struct {
 	rds *RedisHandle
 }
 
-var (
-	channel string = "LocalStorageSync"
-)
-
 func Init() {
 	c := &Cache{}
 
-	c.mem := MemcacheHandle.Init()
-	c.rds := RedisHandle.Init()
+	c.mem = MemcacheHandle.Init()
+	c.rds = RedisHandle.Init()
 
-	c.lsIntf := LocalStorage(c.mem)
+	c.lsIntf = LocalStorage(c.mem)
 
-	subscribe(c.rds)
+	go subscribe(c.rds)
 
 	return c
 }
 
 // use redis subscribe/publish function to sync object
 func subscribe(rds *RedisHandle) {
+	var channel string = "LocalStorageSync"
+
 	conn := rds.pool.Get()
 	defer conn.Close()
 

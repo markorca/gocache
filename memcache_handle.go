@@ -6,10 +6,6 @@ type MemcacheHandle struct {
 	client *memcache
 }
 
-var (
-	address string = "127.0.0.1:11211"
-)
-
 func cacheItemToItem(cacheItem *cacheItem) *memcache.Item {
 	return &memcache.Item{
 		Key: cacheItem.Key,
@@ -27,7 +23,9 @@ func itemToCacheItem(item *memcache.Item) *CacheItem {
 }
 
 func (m *MemcacheHandle) Init() {
-	m.client := memcache.New(address)
+	var address string = "127.0.0.1:11211"
+
+	m.client = memcache.New(address)
 	return m
 }
 
@@ -41,7 +39,7 @@ func (m *MemcacheHandle) Set(cacheItem *CacheItem) error {
 	return nil
 }
 
-func (m *MemcacheHandle) Get(key string) (cacheItem *CacheItem, err error) {
+func (m *MemcacheHandle) Get(key string) (*CacheItem, error) {
 	if item, err := m.client.Get(key); err != nil {
 		return _, err
 	}

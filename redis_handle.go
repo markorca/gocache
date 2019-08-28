@@ -7,24 +7,17 @@ type RedisHandle struct {
 	pool *redis.Pool
 }
 
-var (
-	network string = "tcp"
-	address string = "127.0.0.1:6379"
-	password string = ""
-	maxConnection int = 100
-
-	channel string = "LocalStorageSync"
-)
-
 func (r *RedisHandle) Init() {
-	r.pool := &redis.Pool{
+	var maxConnection int = 100
+
+	r.pool = &redis.Pool{
 		MaxIdle: maxConnection,
 		MaxActive: maxConnection,
 		Wait: false,
 		IdleTimeout: 240 * time.Second,
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, error := c.Do("PING")
-			return error
+			_, err := c.Do("PING")
+			return err
 		},
 		Dail: func() (redis.Conn, error) {
 			return dial(network, address, password)
@@ -35,6 +28,10 @@ func (r *RedisHandle) Init() {
 }
 
 func dial() (redis.Conn, error) {
+	var network string = "tcp"
+	var address string = "127.0.0.1:6379"
+	var password string = ""
+
 	c, error := redis.Dial(network, address)
 	if err != nil {
 		return nil, error
@@ -51,6 +48,8 @@ func dial() (redis.Conn, error) {
 }
 
 func (r *RedisHandle) Publish(message string) error {
+	var channel string = "LocalStorageSync"
+
 	conn := r.pool.Get()
 	defer conn.Close()
 
