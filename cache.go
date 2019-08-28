@@ -58,7 +58,8 @@ func subscribe(rds *RedisHandle) error {
 }
 
 func (c *Cache) GetObject(key string) (*CacheItem, error) {
-	if cacheItem, err := c.lsIntf.Get(key); err != nil {
+	cacheItem, err := c.lsIntf.Get(key)
+	if err != nil {
 		return nil, err
 	}
 	return cacheItem, err
