@@ -55,3 +55,12 @@ func (m *MemcacheHandle) Get(key string) (*CacheItem, error) {
 
 	return cacheItem, nil
 }
+
+func (m *MemcacheHandle) Delete(key string) error {
+	err := m.client.Delete(key)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

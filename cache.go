@@ -46,7 +46,7 @@ func subscribe(c *Cache) error {
 		for {
 			switch v:= psc.Receive().(type) {
 			case redis.Message:
-				// TODO v.Data, v.Channel
+				// v.Data, v.Channel
 				if (v.Channel == channel) {
 					if err := LocalStorageSync(c, v.Data); err != nil {
 						panic(err)
@@ -54,7 +54,7 @@ func subscribe(c *Cache) error {
 				}
 			case redis.Subscription:
 				// NOTHING
-				fmt.Println(v)
+				// fmt.Println(v)
 			case error:
 				// TODO error
 				panic(v)
@@ -77,6 +77,10 @@ func LocalStorageSync(c *Cache, data []byte) error {
 		if err := c.lsIntf.Set(cacheItem); err != nil {
 			return err
 		}
+	case "DELETE":
+		if err := c.lsIntf.Delete(cacheItem.Key); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -96,7 +100,6 @@ func (c *Cache) GetObject(key string) (interface{}, error) {
 	return value, err
 }
 
-// need distributed
 func (c *Cache) SetObject(key string, value interface{}, expiration int32) error {
 	jsonValue, err := json.Marshal(value)
 	if err != nil {
@@ -122,7 +125,20 @@ func (c *Cache) SetObject(key string, value interface{}, expiration int32) error
 	return nil
 }
 
-// need distributed
-func (c *Cache) DeleteObject(key string) {
+func (c *Cache) DeleteObject(key string) error {
+	cacheItem := &CacheItem{
+		Key: key,
+		Method: "DELETE",
+	}
 
+	if err := c.lsIntf.Delete(key); err != nil {
+		return err
+	}
+
+	jsonCacheItem, _ := json.Marshal(cacheItem)
+	if err := c.rds.Publish(jsonCacheItem); err != nil {
+		return err
+	}
+
+	return nil
 }
