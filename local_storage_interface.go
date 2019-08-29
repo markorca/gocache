@@ -7,6 +7,6 @@ type LocalStorage interface {
 	// use key to get cacheItem in local storage
 	Get(key string) (*CacheItem, error)
 	
-	// // delete cacheItem in local storage
-	// Delete(key string) (err error)
+	// delete cacheItem in local storage
+	Delete(key string) (error)
 }
