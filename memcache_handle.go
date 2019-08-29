@@ -12,6 +12,13 @@ func NewMemcacheHandle() *MemcacheHandle {
 	return m
 }
 
+func (m *MemcacheHandle) Init() *MemcacheHandle {
+	var address string = "127.0.0.1:11211"
+
+	m.client = memcache.New(address)
+	return m
+}
+
 func cacheItemToItem(cacheItem *CacheItem) *memcache.Item {
 	return &memcache.Item{
 		Key: cacheItem.Key,
@@ -26,13 +33,6 @@ func itemToCacheItem(item *memcache.Item) *CacheItem {
 		Value: item.Value,
 		Expiration: item.Expiration,
 	}
-}
-
-func (m *MemcacheHandle) Init() *MemcacheHandle {
-	var address string = "127.0.0.1:11211"
-
-	m.client = memcache.New(address)
-	return m
 }
 
 func (m *MemcacheHandle) Set(cacheItem *CacheItem) error {

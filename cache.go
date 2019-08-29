@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 )
@@ -9,6 +10,7 @@ type Cache struct {
 	// handle memcache
 	mem *MemcacheHandle
 
+	// local storage interface
 	lsIntf LocalStorage
 
 	// redis conn, use it to update/delete in multi
@@ -57,16 +59,27 @@ func subscribe(rds *RedisHandle) error {
 	return nil
 }
 
-func (c *Cache) GetObject(key string) (*CacheItem, error) {
+func (c *Cache) GetObject(key string) (interface{}, error) {
 	cacheItem, err := c.lsIntf.Get(key)
 	if err != nil {
 		return nil, err
 	}
-	return cacheItem, err
+	
+	var value interface{}
+	if err := json.Unmarshal(cacheItem.Value, &value); err != nil {
+		return nil, err
+	}
+
+	return value, err
 }
 
 // need distributed
-func (c *Cache) SetObject(key string, value []byte, expiration int32) error {
+func (c *Cache) SetObject(key string, value interface{}, expiration int32) error {
+	var tmp interface{}
+	if err := json.Unmarshal(value, &tmp); err != nil {
+		value = json.Marshal(value)
+	}
+
 	cacheItem := &CacheItem{
 		Key: key,
 		Value: value,
