@@ -75,14 +75,14 @@ func (c *Cache) GetObject(key string) (interface{}, error) {
 
 // need distributed
 func (c *Cache) SetObject(key string, value interface{}, expiration int32) error {
-	var tmp interface{}
-	if err := json.Unmarshal(value, &tmp); err != nil {
-		value = json.Marshal(value)
+	jsValue, err := json.Marshal(value)
+	if err != nil {
+		return err
 	}
 
 	cacheItem := &CacheItem{
 		Key: key,
-		Value: value,
+		Value: jsValue,
 		Expiration: expiration,
 	}
 
