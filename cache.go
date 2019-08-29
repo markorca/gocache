@@ -48,15 +48,14 @@ func subscribe(c *Cache) error {
 				// v.Data, v.Channel
 				if (v.Channel == channel) {
 					if err := LocalStorageSync(c, v.Data); err != nil {
-						panic(err)
+						// TODO: log error
 					}
 				}
 			case redis.Subscription:
 				// NOTHING
 				// fmt.Println(v)
 			case error:
-				// TODO error
-				panic(v)
+				// TODO: log error
 			}
 		}
 	}()
