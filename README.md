@@ -3,8 +3,8 @@ A distributed local cache for Go.
 
 When SetObject/DeleteObject is called, the same action will be performed in each cache node.
 
-##Usage:
 
+## Usage
 
 ``` 
 package main
