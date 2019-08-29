@@ -10,4 +10,6 @@ type CacheItem struct {
 	// Expiration is the cache expiration time, in seconds
 	// Zero means no expiration time.
 	Expiration int32
+
+	Method string
 }

@@ -52,7 +52,7 @@ func dial(network, address, password string) (redis.Conn, error) {
 	return c, err
 }
 
-func (r *RedisHandle) Publish(message string) error {
+func (r *RedisHandle) Publish(message []byte) error {
 	var channel string = "LocalStorageSync"
 
 	conn := r.pool.Get()
